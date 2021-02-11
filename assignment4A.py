@@ -38,12 +38,6 @@ class Assignment4A:
         solving the assignment for specific functions. 
         """
         self.Ms = [self.build_M(d) for d in range(13)]
-        self.Ms[3] = torch.Tensor(
-            [[-1, +3, -3, +1],
-             [+3, -6, +3, 0],
-             [-3, +3, 0, 0],
-             [+1, 0, 0, 0]]
-        )
 
     def fit(self, f: callable, a: float, b: float, d:int, maxtime: float) -> callable:
         """
@@ -70,9 +64,8 @@ class Assignment4A:
         start_time = time.time()
         n = 1000
         M = self.Ms[d] if d < len(self.Ms) else self.build_M(d)
-        M = self.Ms[3]
 
-        fit_func = self.fit_core(f, a, b, n, 3, M)
+        fit_func = self.fit_core(f, a, b, n, d, M)
         time_took = time.time() - start_time
 
         time_left = maxtime - time_took - 0.01
@@ -81,7 +74,7 @@ class Assignment4A:
         n = int(min((b - a) * 5000, n))
         if n >= 2000:
             time_left = time.time() - start_time
-            fit_func = self.fit_core(f, a, b, n, 3, M)
+            fit_func = self.fit_core(f, a, b, n, d, M)
         return fit_func
 
     def fit_core(self, f: callable, a: float, b: float, n: int, d: int, M):
@@ -102,6 +95,11 @@ class Assignment4A:
         P = torch.stack([torch.Tensor(x_samples), torch.Tensor(y_samples)]).T
         C = M.inverse().mm((T.T.mm(T)).inverse()).mm(T.T).mm(P)
         bezier_curve = M.mm(C).T
+        # print(f"T: {T.size()}")
+        # print(f"P: {P.size()}")
+        # print(f"C: {C.size()}")
+        # print(f"Bezier: {bezier_curve.size()}")
+        #bezier_curve = (T.T.mm(T)).inverse().mm(T.T).mm(P).T
         bezier_x_poly = np.poly1d(converted_to_np_float32(bezier_curve[0]))
         bezier_y_poly = np.poly1d(converted_to_np_float32(bezier_curve[1]))
 
@@ -113,10 +111,10 @@ class Assignment4A:
                 t = 1
                 #print(f"matched x={x} with t={t}")
             else:
-                return find_t_in_interval(x)
+                t = find_t_in_interval(x)
             return t
         def find_t_in_interval(x):
-            ts = poly_funcs.find_roots(bezier_x_poly - x, -0.4, 1.2)
+            ts = [root for root in (bezier_x_poly - x).roots if root.imag == 0 and 0.35 < root.real < 1.2]
             if len(ts) == 0:
                 raise Exception(f"No t_dis matching x={x}")
             elif len(ts) == 1:
@@ -133,7 +131,20 @@ class Assignment4A:
         return fit_func
 
     def build_M(self, d: int):
-        M = np.zeros((d + 1, d + 1))
+        # took code from stackoverflow on how to efficiently calculate a pascal's triangle row
+        #see https://stackoverflow.com/questions/15580291/how-to-efficiently-calculate-a-row-in-pascals-triangle
+        m = d + 1
+        M = torch.zeros([m, m], dtype=torch.float32)
+
+        d_choose_i = 1
+        for control_point_index in range(m):
+            one_minus_t_power = d - control_point_index
+            power_choose_t = 1 if (d + control_point_index) % 2 == 0 else -1
+            for choose_1_amount in range(one_minus_t_power + 1):
+                M[choose_1_amount][control_point_index] = d_choose_i * power_choose_t
+                power_choose_t *= -(one_minus_t_power - choose_1_amount) / (choose_1_amount + 1)
+            d_choose_i *= (d - control_point_index) / (control_point_index + 1)
+        return M
 
 ##########################################################################
 
