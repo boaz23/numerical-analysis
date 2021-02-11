@@ -28,6 +28,9 @@ import poly_funcs
 def euclidean_distance(x1, y1, x2, y2):
     return np.sqrt(((x1 - x2) ** 2) + ((y1 - y2) ** 2))
 
+def converted_to_np_float32(l):
+    return [np.float32(item) for item in l]
+
 class Assignment4A:
     def __init__(self):
         """
@@ -94,8 +97,8 @@ class Assignment4A:
         T = torch.stack([t_dis ** k for k in range(3, -1, -1)]).T
         C = M_d.inverse().mm((T.T.mm(T)).inverse()).mm(T.T).mm(P)
         bezier_curve = M_d.mm(C).T
-        bezier_x_poly = np.poly1d(bezier_curve[0])
-        bezier_y_poly = np.poly1d(bezier_curve[1])
+        bezier_x_poly = np.poly1d(converted_to_np_float32(bezier_curve[0]))
+        bezier_y_poly = np.poly1d(converted_to_np_float32(bezier_curve[1]))
 
         def find_t(x):
             if x == a:
