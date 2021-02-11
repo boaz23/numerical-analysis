@@ -70,12 +70,19 @@ class Assignment4:
         The area of the shape.
 
         """
-        n = 2000
+        n = self.estimate_n(maxerr)
         time_took = time.time()
         area_est = self.area_core(contour(n))
         time_took = time.time() - time_took
         return area_est
-    
+
+    def estimate_n(self, maxerr):
+        n = 500 * abs(np.log10(maxerr))
+        if maxerr < 0.001:
+            n *= 2
+        n = max(10000, n)
+        return n
+
     def fit_shape(self, sample: callable, maxtime: float) -> AbstractShape:
         """
         Build a function that accurately fits the noisy data points sampled from
@@ -169,6 +176,7 @@ class TestAssignment4(unittest.TestCase):
         a_computed = ass4.area(contour=circ.contour, maxerr=0.1)
         T = time.time() - T
         a_true = circ.area()
+        print(a_computed)
         self.assertLess(abs((a_true - a_computed)/a_true), 0.1)
 
 
