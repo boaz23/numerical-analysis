@@ -2,6 +2,7 @@
 *.bak
 *.txt
 *.zip
+~*.tmp
 .idea/
 .ipynb_checkpoints/
 __pycache__/

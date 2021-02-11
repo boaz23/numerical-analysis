@@ -23,6 +23,12 @@ import random
 import assignment2
 import math
 
+def sum_float_list(fns):
+    fns.sort()
+    def sum_floating_number(acc, fn):
+        return np.float32(acc + fn)
+    return functools.reduce(sum_floating_number, fns, np.float32(0))
+
 def integrate_simpson_composite(f: callable, a: float, b: float, n: int) -> np.float32:
     if n % 2 == 0:
         n -= 1
@@ -38,10 +44,7 @@ def integrate_simpson_composite(f: callable, a: float, b: float, n: int) -> np.f
     ys = [np.float32(f(a))]
     ys = ys + [build_point_info(i) for i in range(1, n - 1)]
     ys = ys + [np.float32(f(b))]
-    ys.sort()
-    def sum_ys(acc, y):
-        return np.float32(acc + y)
-    s = functools.reduce(sum_ys, ys, np.float32(0))
+    s = sum_float_list(ys)
     h = np.float32(np.float32(b - a) / np.float32(n - 1))
     return np.float32(np.float32(h / 3) * s)
 
@@ -119,14 +122,14 @@ class Assignment3:
             return np.float32(np.nan)
 
         f = lambda x: f1(x) - f2(x)
-        s = np.float32(0)
-        for i in range(intersections_amount - 1):
+        def calculate_area(i):
             x0 = intersection_xs[i]
             x2 = intersection_xs[i + 1]
             n = math.ceil((x2 - x0) / 2)
             n = min(5, 5 * n)
-            s = np.float32(s + abs(self.integrate(f, x0, x2, n)))
-        return s
+            return np.float32(abs(self.integrate(f, x0, x2, n)))
+        areas = [calculate_area(i) for i in range(intersections_amount - 1)]
+        return sum_float_list(areas)
 
 
 ##########################################################################
