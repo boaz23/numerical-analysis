@@ -1,0 +1,13 @@
+*.docx
+*.bak
+*.txt
+*.zip
+.idea/
+.ipynb_checkpoints/
+__pycache__/
+backup*
+practicle
+
+assignment3t.py
+assignment4-test.py
+tfunctions.py
