@@ -53,15 +53,15 @@ class Assignment2:
         # replace this line with your solution
         f = lambda x: f1(x) - f2(x)
         return self.find_roots(
+            f,
             a,
             b,
-            f,
             maxerr,
-            non_linear_equations.find_roots_brute_force,
+            non_linear_equations.find_roots_linear_spacing,
             non_linear_equations.unique_roots_filter
         )
 
-    def find_roots(self, a, b, f, maxerr, f_find_roots, f_post_find):
+    def find_roots(self, f, a, b, maxerr, f_find_roots, f_post_find):
         epsilon = maxerr / 10
         roots = f_find_roots(f, a, b, maxerr, epsilon)
         if len(roots) == 0:
@@ -107,11 +107,28 @@ class TestAssignment2(unittest.TestCase):
 
         f1 = lambda x: np.sin(x ** 2)
         f2 = lambda x: 0
+        print(f"f: sin(x^2)")
+        T = time.time()
+        X = ass2.intersections(f1, f2, -4.1, 4.1, maxerr=0.001)
+        T = time.time() - T
+
+        print(f"T: {T}, len: {len(X)}, {X}")
+        print("")
+        for x in X:
+            self.assertGreaterEqual(0.001, abs(f1(x) - f2(x)))
+
+    def test_sin_x_square_2(self):
+        ass2 = Assignment2()
+
+        f1 = lambda x: np.sin(x ** 2)
+        f2 = lambda x: 0
+        print(f"f: sin(x^2)")
         T = time.time()
         X = ass2.intersections(f1, f2, -100, 100, maxerr=0.001)
         T = time.time() - T
 
-        print(f"T: {T}, {len(X)}, f: sin(x^2), {X}")
+        print(f"T: {T}, len: {len(X)}")
+        print("")
         for x in X:
             self.assertGreaterEqual(0.001, abs(f1(x) - f2(x)))
 
@@ -120,26 +137,72 @@ class TestAssignment2(unittest.TestCase):
 
         ass2 = Assignment2()
 
-        f1, f2 = randomIntersectingPolynomials(10)
+        #f1, f2 = randomIntersectingPolynomials(10)
+        f1 = np.poly1d([
+            1.029027500726021,
+            -1.3609900267914292,
+            -0.2914182257282627,
+            -1.7240490235525228,
+            0.2193757877340481,
+            -0.9017994657104131,
+            1.0582052228443624,
+            0.011453141421593704,
+            0.5124845447219013,
+            1.1130132588335755,
+            -0.9422918334173989
+        ])
+        f2 = np.poly1d([0])
+        print(f"f: {poly_funcs.poly_to_string(f1 - f2)}")
 
         T = time.time()
         X = ass2.intersections(f1, f2, -1, 3, maxerr=0.001)
         T = time.time() - T
 
-        print(f"T: {T}, f: {poly_funcs.poly_to_string(f1 - f2)}, X: {X}")
+        print(f"T: {T}, X: {X}")
+        print("")
         for x in X:
             self.assertGreaterEqual(0.001, abs(f1(x) - f2(x)))
-
 
     def test_poly_2(self):
         ass2 = Assignment2()
 
         f1, f2 = np.poly1d([-1, 0, 1]), lambda x: 0
+        print(f"f: {poly_funcs.poly_to_string(f1)}")
         T = time.time()
         X = ass2.intersections(f1, f2, -1, 3, maxerr=0.001)
         T = time.time() - T
 
-        print(f"T: {T}, f: {poly_funcs.poly_to_string(f1)}, X: {X}")
+        print(f"T: {T}, X: {X}")
+        print("")
+        for x in X:
+            self.assertGreaterEqual(0.001, abs(f1(x) - f2(x)))
+
+    def test_poly_2_2(self):
+        ass2 = Assignment2()
+
+        f1, f2 = np.poly1d([-1, 0, 1]), lambda x: 0
+        print(f"f: {poly_funcs.poly_to_string(f1)}")
+        T = time.time()
+        X = ass2.intersections(f1, f2, -2, 1, maxerr=0.001)
+        T = time.time() - T
+
+        print(f"T: {T}, X: {X}")
+        print("")
+        for x in X:
+            self.assertGreaterEqual(0.001, abs(f1(x) - f2(x)))
+
+    def test_constant(self):
+        ass2 = Assignment2()
+        f1 = np.poly1d([5])
+        f2 = np.poly1d([0])
+
+        print(f"f: {poly_funcs.poly_to_string(f1 - f2)}")
+        T = time.time()
+        X = ass2.intersections(f1, f2, -1, 3, maxerr=0.001)
+        T = time.time() - T
+
+        print(f"T: {T}, X: {X}")
+        print("")
         for x in X:
             self.assertGreaterEqual(0.001, abs(f1(x) - f2(x)))
 
@@ -148,15 +211,17 @@ class TestAssignment2(unittest.TestCase):
         f1 = np.poly1d([1, -2, 0, 1])
         f2 = np.poly1d([1, 0])
 
+        print(f"f: {poly_funcs.poly_to_string(f1 - f2)}")
         T = time.time()
         X = ass2.intersections(f1, f2, -1, 3, maxerr=0.001)
         T = time.time() - T
 
-        print(f"T: {T}, f: {poly_funcs.poly_to_string(f1 - f2)}, X: {X}")
+        print(f"T: {T}, X: {X}")
+        print("")
         for x in X:
             self.assertGreaterEqual(0.001, abs(f1(x) - f2(x)))
 
 
 if __name__ == "__main__":
     unittest.main()
-    #TestAssignment2().test_poly2()
+    #TestAssignment2().test_sin_x_square()

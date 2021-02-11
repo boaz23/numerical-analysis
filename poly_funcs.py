@@ -67,7 +67,7 @@ def poly_to_string(p):
     else:
         s += str(highest)
     if n >= 10:
-        s += f"x^({n})"
+        s += f"x^{{{n}}}"
     elif n > 1:
         s += f"x^{n}"
     elif n == 1:
