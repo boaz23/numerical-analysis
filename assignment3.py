@@ -21,6 +21,7 @@ import functools
 import time
 import random
 import assignment2
+import math
 
 def integrate_simpson_composite(f: callable, a: float, b: float, n: int) -> np.float32:
     if n % 2 == 0:
@@ -122,9 +123,7 @@ class Assignment3:
         for i in range(intersections_amount - 1):
             x0 = intersection_xs[i]
             x2 = intersection_xs[i + 1]
-            n = (x2 - x0) / 2
-            if not n.is_integer():
-                n = int(n) + 1
+            n = math.ceil((x2 - x0) / 2)
             n = min(5, 5 * n)
             s = np.float32(s + abs(self.integrate(f, x0, x2, n)))
         return s

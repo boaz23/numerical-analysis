@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 def is_root(y, maxerr):
     return abs(y) < maxerr
@@ -41,7 +42,7 @@ def regula_falsi(f, a, b, maxerr):
     fc = fb = f(b)
     while not is_root(fc, maxerr):
         c = b - fb * ((b - a) / (fb - f(a)))
-        fזc = f(c)
+        fc = f(c)
         if (fc < 0) != (fb < 0):
             a = c
         else:
@@ -51,7 +52,7 @@ def regula_falsi(f, a, b, maxerr):
 
 def find_roots_linear_spacing(f, a, b, maxerr, epsilon):
     precision = max(100, 1 / (maxerr * 10))
-    n = int(round((b - a) * precision)) + 1
+    n = int(math.ceil((b - a) * precision)) + 1
     #print(f"precision: {1 / precision}, n: {n}")
 
     n = max(11, n)
