@@ -126,7 +126,7 @@ class Assignment3:
             x0 = intersection_xs[i]
             x2 = intersection_xs[i + 1]
             n = math.ceil((x2 - x0) / 2)
-            n = min(5, 5 * n)
+            n = min(10, 5 * n)
             return np.float32(abs(self.integrate(f, x0, x2, n)))
         areas = [calculate_area(i) for i in range(intersections_amount - 1)]
         return sum_float_list(areas)

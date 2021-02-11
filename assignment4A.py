@@ -74,17 +74,18 @@ class Assignment4A:
         time_took = time.time() - time_took
 
         time_left = maxtime - time_took - 0.01
-        n = (time_left / (time_took * 2 + 0.005)) * 1000
-        n = int(min(round((b - a) * 1000), n))
+        # the estimated amount of times we can calculate 5000 points in the time left while giving some buffer.
+        n = (time_left / (time_took * 2 + 0.005)) * 5000
+        n = int(min((b - a) * 5000, n))
         if n >= 2000:
             fit_func = self.fit_core(f, a, b, n, d, M_d)
         return fit_func
 
     def fit_core(self, f: callable, a: float, b: float, n: int, d: int, M_d):
-        x_samples = np.concatenate([[a], (np.random.random(n - 2) * (b - a)) + a, [b]])
-        x_samples.sort()
+        #x_samples = np.concatenate([[a], (np.random.random(n - 2) * (b - a)) + a, [b]])
+        #x_samples.sort()
+        x_samples = np.linspace(a, b, n)
         y_samples = f(x_samples)
-        P = torch.stack([torch.Tensor(x_samples), torch.Tensor(y_samples)]).T
 
         dis = [0] * n
         def sum_d(acc, i):
@@ -95,6 +96,7 @@ class Assignment4A:
 
         t_dis = torch.Tensor([dis[i] / d_total for i in range(n)])
         T = torch.stack([t_dis ** k for k in range(3, -1, -1)]).T
+        P = torch.stack([torch.Tensor(x_samples), torch.Tensor(y_samples)]).T
         C = M_d.inverse().mm((T.T.mm(T)).inverse()).mm(T.T).mm(P)
         bezier_curve = M_d.mm(C).T
         bezier_x_poly = np.poly1d(converted_to_np_float32(bezier_curve[0]))
