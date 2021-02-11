@@ -28,9 +28,6 @@ import poly_funcs
 def euclidean_distance(x1, y1, x2, y2):
     return np.sqrt(((x1 - x2) ** 2) + ((y1 - y2) ** 2))
 
-def converted_to_np_float32(l):
-    return [np.float32(item) for item in l]
-
 class Assignment4A:
     def __init__(self):
         """
@@ -69,9 +66,10 @@ class Assignment4A:
         time_took = time.time() - start_time
 
         time_left = maxtime - time_took - 0.01
-        # the estimated amount of times we can calculate 5000 points in the time left while giving some buffer.
-        n = (time_left / (time_took * 2 + 0.005)) * 5000
-        n = int(min((b - a) * 5000, n))
+        # the estimated amount of times we can calculate the new n points in the time left while giving some buffer.
+        estimated_time_new_n = time_left / (time_took * 15 + 0.005)
+        n = estimated_time_new_n * 10000
+        n = int(min((b - a) * 10000, n))
         if n >= 2000:
             time_left = time.time() - start_time
             fit_func = self.fit_core(f, a, b, n, d, M)
@@ -80,8 +78,9 @@ class Assignment4A:
     def fit_core(self, f: callable, a: float, b: float, n: int, d: int, M):
         #x_samples = np.concatenate([[a], (np.random.random(n - 2) * (b - a)) + a, [b]])
         #x_samples.sort()
-        x_samples = np.linspace(a, b, n)
-        y_samples = f(x_samples)
+        x_samples = np.linspace(a, b, n, dtype=np.float64)
+        y_samples = torch.from_numpy(f(x_samples))
+        x_samples = torch.from_numpy(x_samples)
 
         dis = [0] * n
         def sum_d(acc, i):
@@ -90,18 +89,13 @@ class Assignment4A:
             return d
         d_total = functools.reduce(sum_d, range(1, n), 0)
 
-        t_dis = torch.Tensor([dis[i] / d_total for i in range(n)])
+        t_dis = torch.tensor([dis[i] / d_total for i in range(n)], dtype=torch.float64)
         T = torch.stack([t_dis ** k for k in range(d, -1, -1)]).T
-        P = torch.stack([torch.Tensor(x_samples), torch.Tensor(y_samples)]).T
+        P = torch.stack([x_samples, y_samples]).T
         C = M.inverse().mm((T.T.mm(T)).inverse()).mm(T.T).mm(P)
         bezier_curve = M.mm(C).T
-        # print(f"T: {T.size()}")
-        # print(f"P: {P.size()}")
-        # print(f"C: {C.size()}")
-        # print(f"Bezier: {bezier_curve.size()}")
-        #bezier_curve = (T.T.mm(T)).inverse().mm(T.T).mm(P).T
-        bezier_x_poly = np.poly1d(converted_to_np_float32(bezier_curve[0]))
-        bezier_y_poly = np.poly1d(converted_to_np_float32(bezier_curve[1]))
+        bezier_x_poly = np.poly1d(bezier_curve[0])
+        bezier_y_poly = np.poly1d(bezier_curve[1])
 
         def find_t(x):
             if x == a:
@@ -134,7 +128,7 @@ class Assignment4A:
         # took code from stackoverflow on how to efficiently calculate a pascal's triangle row
         #see https://stackoverflow.com/questions/15580291/how-to-efficiently-calculate-a-row-in-pascals-triangle
         m = d + 1
-        M = torch.zeros([m, m], dtype=torch.float32)
+        M = torch.zeros([m, m], dtype=torch.float64)
 
         d_choose_i = 1
         for control_point_index in range(m):
