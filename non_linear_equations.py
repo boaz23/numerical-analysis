@@ -50,7 +50,7 @@ def regula_falsi(f, a, b, maxerr):
             fb = fc
     return c
 
-def find_roots_linear_spacing(f, a, b, maxerr, epsilon):
+def find_roots_linear_spacing(f, a, b, maxerr):
     precision = max(100, 1 / (maxerr * 10))
     n = int(math.ceil((b - a) * precision)) + 1
     #print(f"precision: {1 / precision}, n: {n}")
@@ -93,7 +93,6 @@ def find_roots_linear_spacing(f, a, b, maxerr, epsilon):
 
 def unique_roots_filter(f, roots, maxerr):
     roots_amount = len(roots)
-    roots.sort(key=lambda x: x[0])
     i = 0
     unique_roots = []
     while i < roots_amount:
@@ -115,7 +114,8 @@ def unique_roots_filter(f, roots, maxerr):
         unique_roots.append(min_x)
     return unique_roots
 
-def find_roots_brute_force(f: callable, a: float, b: float, maxerr: float, epsilon: float):
+def find_roots_brute_force(f: callable, a: float, b: float, maxerr: float):
+    epsilon = maxerr / 10
     intervals_stack = [(a, b)]
     roots = []
     while len(intervals_stack) > 0:

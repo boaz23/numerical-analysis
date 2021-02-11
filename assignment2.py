@@ -62,8 +62,7 @@ class Assignment2:
         )
 
     def find_roots(self, f, a, b, maxerr, f_find_roots, f_post_find):
-        epsilon = maxerr / 10
-        roots = f_find_roots(f, a, b, maxerr, epsilon)
+        roots = f_find_roots(f, a, b, maxerr)
         if len(roots) == 0:
             return roots
         return f_post_find(f, roots, maxerr)
@@ -137,25 +136,25 @@ class TestAssignment2(unittest.TestCase):
 
         ass2 = Assignment2()
 
-        #f1, f2 = randomIntersectingPolynomials(10)
-        f1 = np.poly1d([
-            1.029027500726021,
-            -1.3609900267914292,
-            -0.2914182257282627,
-            -1.7240490235525228,
-            0.2193757877340481,
-            -0.9017994657104131,
-            1.0582052228443624,
-            0.011453141421593704,
-            0.5124845447219013,
-            1.1130132588335755,
-            -0.9422918334173989
-        ])
-        f2 = np.poly1d([0])
+        f1, f2 = randomIntersectingPolynomials(10)
+        # f1 = np.poly1d([
+        #     1.029027500726021,
+        #     -1.3609900267914292,
+        #     -0.2914182257282627,
+        #     -1.7240490235525228,
+        #     0.2193757877340481,
+        #     -0.9017994657104131,
+        #     1.0582052228443624,
+        #     0.011453141421593704,
+        #     0.5124845447219013,
+        #     1.1130132588335755,
+        #     -0.9422918334173989
+        # ])
+        # f2 = np.poly1d([0])
         print(f"f: {poly_funcs.poly_to_string(f1 - f2)}")
 
         T = time.time()
-        X = ass2.intersections(f1, f2, -1, 3, maxerr=0.001)
+        X = ass2.intersections(f1, f2, -2, 3, maxerr=0.001)
         T = time.time() - T
 
         print(f"T: {T}, X: {X}")
