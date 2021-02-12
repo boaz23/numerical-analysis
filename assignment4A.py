@@ -119,6 +119,18 @@ class Assignment4A:
         bezier_x_poly = np.poly1d(bezier_curve[0])
         bezier_y_poly = np.poly1d(bezier_curve[1])
 
+        def find_t_in_interval(x):
+            ts = [root.real for root in (bezier_x_poly - x).roots if root.imag == 0 and -0.2 < root.real < 1.2]
+            if len(ts) == 0:
+                t = estimate_t_by_distance(x)
+                #raise Exception(f"No t matching x={x}")
+            elif len(ts) == 1:
+                t = ts[0]
+                #print(f"matched x={x} with t={t}")
+            else:
+                t = estimate_t_by_distance(x)
+                #print(f"{estimated_t}, matched x={x} with {ts}, took {t}")
+            return t
         def find_t(x):
             if x == a:
                 t = 0
@@ -129,18 +141,21 @@ class Assignment4A:
             else:
                 t = find_t_in_interval(x)
             return t
-        def find_t_in_interval(x):
-            ts = [root.real for root in (bezier_x_poly - x).roots if root.imag == 0 and -0.2 < root.real < 1.2]
-            estimated_t = (x - a) / (b - a)
-            if len(ts) == 0:
-                t = estimated_t
-                #raise Exception(f"No t matching x={x}")
-            elif len(ts) == 1:
-                t = ts[0]
-                #print(f"matched x={x} with t={t}")
+        def estimate_t_by_distance(x):
+            low = 0
+            high = n - 1
+            while (low <= high):
+                mid = (low + high) // 2
+                if x_samples[mid] <= x <= x_samples[mid + 1]:
+                    t = (x - x_samples[mid]) / (x_samples[mid + 1] - x_samples[mid])
+                    t = t_dis[mid] + ((t_dis[mid + 1] - t_dis[mid]) * t)
+                    break
+                elif x > x_samples[mid]:
+                    low = mid + 1
+                else:
+                    high = mid - 1
             else:
-                t = min(ts, key=lambda x: abs(x - estimated_t))
-                #print(f"{estimated_t}, matched x={x} with {ts}, took {t}")
+                t = 0 if high < 0 else 1
             return t
         def fit_func(x):
             return bezier_y_poly(find_t(x))
@@ -181,14 +196,14 @@ class TestAssignment4(unittest.TestCase):
         T = time.time() - T
         self.assertLessEqual(T, 5)
 
-    # def test_delay(self):
-        # f = DELAYED(7)(NOISY(0.01)(poly(1,1,1)))
-        #
-        # ass4 = Assignment4A()
-        # T = time.time()
-        # shape = ass4.fit(f=f, a=0, b=1, d=10, maxtime=5)
-        # T = time.time() - T
-        # self.assertGreaterEqual(T, 5)
+    def test_delay(self):
+        f = DELAYED(7)(NOISY(0.01)(poly(1,1,1)))
+
+        ass4 = Assignment4A()
+        T = time.time()
+        shape = ass4.fit(f=f, a=0, b=1, d=10, maxtime=5)
+        T = time.time() - T
+        self.assertGreaterEqual(T, 5)
 
     def test_err(self):
         f = poly(1,1,1)
