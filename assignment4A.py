@@ -74,6 +74,7 @@ class Assignment4A:
 
         n = (b - a) * 1000
         in_slow_start = True
+        slow_start_threshold = (b - a) * d * 1000
         time_left = maxtime - (time.time() - start_time)
         while time_left > 0:
             fit_thread = threading.Thread(target=run_fit_core)
@@ -90,9 +91,9 @@ class Assignment4A:
 
             if in_slow_start:
                 n_temp = n * 2.5
-                if n_temp > d * 1000:
+                if n_temp > slow_start_threshold:
                     in_slow_start = False
-                    n = min(n_temp, (d * 1000) + 1000)
+                    n = min(n_temp, slow_start_threshold + 1000)
             else:
                 n += 2000
             time_left = maxtime - (time.time() - start_time)
