@@ -134,13 +134,14 @@ class Assignment4A:
             return t
         def find_t_in_interval(x):
             ts = [root.real for root in (bezier_x_poly - x).roots if root.imag == 0 and -0.2 < root.real < 1.2]
+            estimated_t = (x - a) / (b - a)
             if len(ts) == 0:
-                raise Exception(f"No t matching x={x}")
+                t = estimated_t
+                #raise Exception(f"No t matching x={x}")
             elif len(ts) == 1:
                 t = ts[0]
                 #print(f"matched x={x} with t={t}")
             else:
-                estimated_t = (x - a) / (b - a)
                 t = min(ts, key=lambda x: abs(x - estimated_t))
                 #print(f"{estimated_t}, matched x={x} with {ts}, took {t}")
             return t
