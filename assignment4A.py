@@ -29,9 +29,6 @@ import threading
 def euclidean_distance(x1, y1, x2, y2):
     return np.sqrt(((x1 - x2) ** 2) + ((y1 - y2) ** 2))
 
-def convert_torch_to_numpy(l):
-    return [np.float64(x) for x in l]
-
 class Assignment4A:
     def __init__(self):
         """
@@ -116,11 +113,11 @@ class Assignment4A:
         t_dis = torch.tensor([dis[i] / d_total for i in range(n)], dtype=torch.float64)
         T = torch.stack([t_dis ** k for k in range(d, -1, -1)]).T
         P = torch.stack([x_samples, y_samples]).T
-        # C = M.inverse().mm((T.T.mm(T)).inverse()).mm(T.T).mm(P)
-        # bezier_curve = M.mm(C).T
-        bezier_curve = (T.T.mm(T)).inverse().mm(T.T).mm(P).T
-        bezier_x_poly = np.poly1d(convert_torch_to_numpy(bezier_curve[0]))
-        bezier_y_poly = np.poly1d(convert_torch_to_numpy(bezier_curve[1]))
+        C = M.inverse().mm((T.T.mm(T)).inverse()).mm(T.T).mm(P)
+        bezier_curve = M.mm(C).T
+        # bezier_curve = (T.T.mm(T)).inverse().mm(T.T).mm(P).T
+        bezier_x_poly = np.poly1d(bezier_curve[0])
+        bezier_y_poly = np.poly1d(bezier_curve[1])
 
         def find_t(x):
             if x == a:
@@ -236,6 +233,11 @@ class TestAssignment4(unittest.TestCase):
         f = poly(*np.random.random(16))
         nf = NOISY(1)(f)
         self.mse_poly(f, nf, 0, 1, 10)
+
+    def test_err_10(self):
+        f = poly(1, 1, 1)
+        nf = NOISY(1)(f)
+        self.mse_poly(f, nf, -10, 10, 10)
 
     def mse_poly(self, f, nf, a, b, d, maxtime=5):
         ass4 = Assignment4A()
