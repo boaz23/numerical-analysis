@@ -23,6 +23,7 @@ import torch
 import random
 import functools
 import poly_funcs
+import threading
 
 
 def euclidean_distance(x1, y1, x2, y2):
@@ -64,23 +65,38 @@ class Assignment4A:
         start_time = time.time()
         n = 1000
         M = self.Ms[d] if d < len(self.Ms) else self.build_M(d)
-
-        fit_start_time = time.time()
         fit_func = self.fit_core(f, a, b, n, d, M)
-        fit_end_time = time.time()
-        time_took = fit_end_time - fit_start_time
 
-        time_left = maxtime - (fit_end_time - start_time)
-        new_points_amount_rel = (b - a) * d
-        estimated_time_new_n = time_took * new_points_amount_rel * 2 + 0.005
-        #print(f"time: took {time_took}s, est {estimated_time_new_n}s, left {time_left}s")
-        estimated_time_new_n = time_left / estimated_time_new_n  #the estimated amount of times we can calculate the new n points in the time left while giving some buffer.
-        n = n * new_points_amount_rel
-        #print(f"new n times: {estimated_time_new_n}, n: {n}")
-        n = int(min(new_points_amount_rel * 1000, n))
-        if n >= 2000:
-            time_left = time.time() - start_time
-            fit_func = self.fit_core(f, a, b, n, d, M)
+        fit_func_in_thread = None
+        def run_fit_core():
+            nonlocal fit_func_in_thread
+            fit_func_in_thread = self.fit_core(f, a, b, int(n), d, M)
+
+        n = (b - a) * 1000
+        in_slow_start = True
+        time_left = maxtime - (time.time() - start_time)
+        while time_left > 0:
+            fit_thread = threading.Thread(target=run_fit_core)
+            fit_thread.setDaemon(True)
+            fit_thread.setName("4A Fitting")
+
+            fit_thread.start()
+            time_left = maxtime - (time.time() - start_time)
+            fit_thread.join(time_left - 0.02)
+            if fit_thread.is_alive():
+                return fit_func
+            else:
+                fit_func = fit_func_in_thread
+
+            if in_slow_start:
+                n_temp = n * 2.5
+                if n_temp > d * 1000:
+                    in_slow_start = False
+                    n = min(n_temp, (d * 1000) + 1000)
+            else:
+                n += 2000
+            time_left = maxtime - (time.time() - start_time)
+
         return fit_func
 
     def fit_core(self, f: callable, a: float, b: float, n: int, d: int, M):
@@ -99,8 +115,9 @@ class Assignment4A:
         t_dis = torch.tensor([dis[i] / d_total for i in range(n)], dtype=torch.float64)
         T = torch.stack([t_dis ** k for k in range(d, -1, -1)]).T
         P = torch.stack([x_samples, y_samples]).T
-        C = M.inverse().mm((T.T.mm(T)).inverse()).mm(T.T).mm(P)
-        bezier_curve = M.mm(C).T
+        # C = M.inverse().mm((T.T.mm(T)).inverse()).mm(T.T).mm(P)
+        # bezier_curve = M.mm(C).T
+        bezier_curve = (T.T.mm(T)).inverse().mm(T.T).mm(P).T
         bezier_x_poly = np.poly1d(convert_torch_to_numpy(bezier_curve[0]))
         bezier_y_poly = np.poly1d(convert_torch_to_numpy(bezier_curve[1]))
 
@@ -117,7 +134,7 @@ class Assignment4A:
         def find_t_in_interval(x):
             ts = [root.real for root in (bezier_x_poly - x).roots if root.imag == 0 and -0.2 < root.real < 1.2]
             if len(ts) == 0:
-                raise Exception(f"No t_dis matching x={x}")
+                raise Exception(f"No t matching x={x}")
             elif len(ts) == 1:
                 t = ts[0]
                 #print(f"matched x={x} with t={t}")
