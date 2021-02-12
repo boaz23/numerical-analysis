@@ -146,7 +146,10 @@ class Assignment4A:
             high = n - 1
             while (low <= high):
                 mid = (low + high) // 2
-                if x_samples[mid] <= x <= x_samples[mid + 1]:
+                if mid == n - 1:
+                    t = 1
+                    break
+                elif x_samples[mid] <= x <= x_samples[mid + 1]:
                     t = (x - x_samples[mid]) / (x_samples[mid + 1] - x_samples[mid])
                     t = t_dis[mid] + ((t_dis[mid + 1] - t_dis[mid]) * t)
                     break
